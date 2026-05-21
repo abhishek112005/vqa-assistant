@@ -1,13 +1,11 @@
 # ─────────────────────────────────────────────────────────────
 # Educational VQA Assistant — Python Dependencies
-#
-# Install with:
-#   pip install -r requirements.txt
 # ─────────────────────────────────────────────────────────────
 
-# ── Deep learning core ─────────────────────────────────────
-torch>=2.0.0
-torchvision>=0.15.0
+# ── CPU-only PyTorch (much smaller than CUDA build, faster startup) ─
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.2+cpu
+torchvision==0.17.2+cpu
 
 # ── Transformers (BERT, ViLT, CLIP, etc.) ─────────────────
 transformers>=4.35.0
@@ -15,11 +13,10 @@ tokenizers>=0.14.0
 
 # ── Image processing ───────────────────────────────────────
 Pillow>=9.5.0
-opencv-python>=4.8.0.74
+opencv-python-headless>=4.8.0.74
 
 # ── Numerical / scientific ─────────────────────────────────
 numpy>=1.24.0
-scipy>=1.10.0
 
 # ── Data handling ──────────────────────────────────────────
 pandas>=2.0.0
