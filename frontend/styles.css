@@ -1,0 +1,32 @@
+/* frontend/styles.css — Extra CSS for the Streamlit app */
+
+/* Gradient header */
+.main-header {
+    font-size: 2.4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.2rem;
+}
+
+/* Answer display card */
+.answer-box {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(17,153,142,0.35);
+}
+
+/* Info card with left border accent */
+.info-card {
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 0.5rem 0;
+}

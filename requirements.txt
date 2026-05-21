@@ -1,0 +1,45 @@
+# ─────────────────────────────────────────────────────────────
+# Educational VQA Assistant — Python Dependencies
+#
+# Install with:
+#   pip install -r requirements.txt
+#
+# GPU users: install PyTorch with CUDA first (visit pytorch.org),
+# then run this file.  The CPU-only index below works on all machines.
+# ─────────────────────────────────────────────────────────────
+
+# ── Deep learning core ─────────────────────────────────────
+torch>=2.0.0
+torchvision>=0.15.0
+
+# ── Transformers (BERT, ViLT, etc.) ───────────────────────
+transformers>=4.35.0
+tokenizers>=0.14.0
+
+# ── Image processing ───────────────────────────────────────
+Pillow>=9.5.0
+opencv-python>=4.8.0.74
+
+# ── Numerical / scientific ─────────────────────────────────
+numpy>=1.24.0
+scipy>=1.10.0
+
+# ── Data handling ──────────────────────────────────────────
+pandas>=2.0.0
+
+# ── Machine learning utilities ────────────────────────────
+scikit-learn>=1.3.0
+
+# ── Visualisation ──────────────────────────────────────────
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# ── Frontend ───────────────────────────────────────────────
+streamlit>=1.28.0
+
+# ── Progress bars ──────────────────────────────────────────
+tqdm>=4.65.0
+
+# ── Utilities ──────────────────────────────────────────────
+requests>=2.31.0
+PyYAML>=6.0
