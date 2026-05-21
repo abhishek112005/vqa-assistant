@@ -2,10 +2,10 @@
 # Educational VQA Assistant — Python Dependencies
 # ─────────────────────────────────────────────────────────────
 
-# ── CPU-only PyTorch (much smaller than CUDA build, faster startup) ─
+# ── CPU-only PyTorch (no CUDA libs, much faster startup on HF free tier) ─
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.2.2+cpu
-torchvision==0.17.2+cpu
+torch==2.12.0+cpu
+torchvision==0.27.0+cpu
 
 # ── Transformers (BERT, ViLT, CLIP, etc.) ─────────────────
 transformers>=4.35.0
