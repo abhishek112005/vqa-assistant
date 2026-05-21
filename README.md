@@ -261,26 +261,6 @@ and point `VQADataset` at it in `utils/dataset.py`.
 
 ---
 
-## 📸 Screenshots
-
-| Upload & Predict | Attention Heatmap | Architecture |
-|:----------------:|:-----------------:|:------------:|
-| *(screenshot)* | *(screenshot)* | *(screenshot)* |
-
----
-
-## 🗺️ Future Improvements
-
-- [ ] Train on VQA-v2 or CLEVR (larger, more diverse data)
-- [ ] Add visual grounding (bounding-box output)
-- [ ] Replace ResNet-50 with Vision Transformer (ViT-B/16)
-- [ ] Use BLIP-2 Q-Former fusion instead of custom cross-attention
-- [ ] Export to ONNX for browser inference
-- [ ] Add chatbot-style multi-turn conversation history
-- [ ] Fine-tune with RLHF for better answer phrasing
-
----
-
 ## 🎤 Interview Explanation
 
 > *"How would you explain this project in 2 minutes?"*
