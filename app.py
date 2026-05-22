@@ -22,10 +22,20 @@ import sys
 import warnings
 warnings.filterwarnings("ignore")
 
-import numpy as np
-import streamlit as st
-from PIL import Image
-import torch
+print("=== VQA APP STARTING ===", flush=True)
+
+try:
+    import numpy as np
+    print("numpy OK", flush=True)
+    import streamlit as st
+    print("streamlit OK", flush=True)
+    from PIL import Image
+    print("PIL OK", flush=True)
+    import torch
+    print("torch OK", flush=True)
+except Exception as e:
+    print(f"IMPORT ERROR: {e}", flush=True)
+    raise
 
 # ─────────────────────────────────────────────────────────────
 # Page configuration (must be the first Streamlit call)
@@ -564,7 +574,11 @@ with tab_gallery:
     if st.button("🔄 Generate New Examples"):
         st.cache_data.clear()
 
-    gallery = get_demo_gallery(n=6)
+    try:
+        gallery = get_demo_gallery(n=6)
+    except Exception as e:
+        st.error(f"Gallery error: {e}")
+        gallery = []
 
     for row_start in range(0, len(gallery), 3):
         cols = st.columns(3)
