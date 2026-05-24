@@ -113,14 +113,16 @@ def _predict_hf_api(img: Image.Image, question: str) -> str:
 
     buf = io.BytesIO()
     img.save(buf, format="JPEG", quality=85)
-    image_bytes = buf.getvalue()
+    image_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
 
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    files   = {"file": ("image.jpg", image_bytes, "image/jpeg")}
-    data    = {"question": question}
+    headers = {
+        "Authorization": f"Bearer {HF_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    payload = {"inputs": {"image": image_b64, "question": question}}
 
     try:
-        resp = requests.post(HF_API_URL, headers=headers, files=files, data=data, timeout=60)
+        resp = requests.post(HF_API_URL, headers=headers, json=payload, timeout=60)
     except requests.Timeout:
         raise HTTPException(status_code=504, detail="HuggingFace API timed out.")
     except requests.RequestException as exc:
