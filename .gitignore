@@ -20,8 +20,12 @@ notebooks/*.ipynb
 # Model checkpoints (large binary files — upload to HF Hub separately)
 checkpoints/*.pth
 
-# Local test images
-test-imgs/
+# Local test images (output screenshots are committed intentionally)
+test-imgs/*.webp
+test-imgs/*.png
+test-imgs/*.jpg
+!test-imgs/OUTPUT-1.jpeg
+!test-imgs/output-2.jpeg
 
 # IDE
 .vscode/

@@ -9,291 +9,233 @@ pinned: false
 license: mit
 ---
 
-# 🧠 Educational Visual Question Answering Assistant
+<div align="center">
 
-> A lightweight multimodal AI system that accepts an image and a natural-language
-> question, then generates a short answer — built for learning, not competition.
+# Visual Question Answering Assistant
 
----
+**Ask anything about an image — in plain English.**
 
-## 🎯 Project Objective
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?style=flat&logo=pytorch&logoColor=white)](https://pytorch.org)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-This project demonstrates core ideas in modern AI:
-
-| Concept | Where it appears |
-|---------|-----------------|
-| **Computer Vision** | ResNet-50 feature extraction |
-| **NLP** | BERT tokenisation + contextual embeddings |
-| **Transformers** | Cross-attention fusion layers |
-| **Attention** | Image ↔ text bidirectional attention |
-| **Multimodal AI** | Joint image–text representation |
-| **Transfer Learning** | Pretrained ResNet + BERT, frozen early layers |
-
-The goal is **clean architecture** and **educational clarity** — not beating GPT-4V.
+</div>
 
 ---
 
-## 🏗️ Architecture
+## Overview
+
+A full-stack multimodal AI application that accepts any image and a natural-language question, then generates a concise answer using **BLIP** (Bootstrapped Language-Image Pre-training). Built to demonstrate modern AI engineering — from model integration and REST API design to a production-ready React frontend.
+
+---
+
+## Output
+
+<table>
+  <tr>
+    <td align="center"><b>Coffee shop scene</b></td>
+    <td align="center"><b>Animal recognition</b></td>
+  </tr>
+  <tr>
+    <td><img src="test-imgs/OUTPUT-1.jpeg" alt="VQA output — coffee shop" width="480"/></td>
+    <td><img src="test-imgs/output-2.jpeg" alt="VQA output — dog" width="480"/></td>
+  </tr>
+  <tr>
+    <td>
+      Q: <i>What is in the image?</i> → <b>coffee</b><br/>
+      Q: <i>Color of coffee cup?</i> → <b>white</b>
+    </td>
+    <td>
+      Q: <i>What animals are present?</i> → <b>dog</b><br/>
+      Q: <i>Is there any belt on the dog?</i> → <b>yes</b><br/>
+      Q: <i>Color of dog?</i> → <b>tan</b>
+    </td>
+  </tr>
+</table>
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **AI Model** | `Salesforce/blip-vqa-base` — fine-tuned on VQAv2 |
+| **Backend** | FastAPI + Uvicorn |
+| **Frontend** | React 18 · TypeScript · Vite · Tailwind CSS |
+| **Inference** | HuggingFace Transformers (local) |
+| **Deployment** | Vercel (frontend) · Docker-ready backend |
+
+---
+
+## Architecture
 
 ```
-Image (224×224)          Question (text)
-      │                        │
-  ResNet-50               BERT Encoder
-  Backbone                (bert-base)
-  (frozen)                (frozen)
-      │                        │
-(B, 49, 512)            (B, L, 512)
-      │                        │
-      └──────┬─────────────────┘
-             │
-    Cross-Attention Fusion (×2 layers)
-    ┌────────────────────────────────┐
-    │  Image ←cross-attn← Text      │  image patches attend to words
-    │  Text  ←cross-attn← Image     │  words attend to image regions
-    └────────────────────────────────┘
-             │
-    Mean-pool image + [CLS] text → concat
-             │
-        MLP Classifier
-             │
-       Answer Logits (35 classes)
+User (Browser)
+      │
+      │  upload image + question
+      ▼
+ React Frontend  ──────────────────────────────────┐
+ (Vercel)                                          │
+      │  POST /api/predict                         │
+      │  { image_b64, question }                   │
+      ▼                                            │
+ Vercel Serverless Function                        │
+ (api/predict.ts)                                  │
+      │                                            │
+      │  calls HuggingFace Inference API           │
+      ▼                                            │
+ BLIP VQA Model                                    │
+ (Salesforce/blip-vqa-base)                        │
+      │                                            │
+      │  { answer }                                │
+      └────────────────────────────────────────────┘
 ```
 
-### Components
+**Model internals:**
 
-**1. Image Encoder** (`models/image_encoder.py`)
-- ResNet-50 pretrained on ImageNet (1.2M images)
-- Removes final avgpool+fc → keeps 7×7 spatial feature maps
-- Flattens to 49 visual tokens of 512-dim each
-- Adds learnable 2D positional embeddings
-- layer4 is fine-tunable; earlier layers frozen
-
-**2. Text Encoder** (`models/text_encoder.py`)
-- `bert-base-uncased`: 12 Transformer layers, 768-dim hidden
-- Produces contextual token embeddings (one per WordPiece token)
-- Projected from 768 → 512-dim to match image features
-- First 10 layers frozen; last 2 fine-tunable
-
-**3. Cross-Attention Fusion** (`models/fusion.py`)
-- Bidirectional: image→text cross-attention + text→image cross-attention
-- Each direction has self-attention + FFN + LayerNorm
-- 8 heads, GELU activation, 2 stacked layers
-- Returns attention weights for visualisation
-
-**4. Answer Head** (`models/vqa_model.py → AnswerHead`)
-- Mean-pool 49 image tokens → 512-dim
-- Take [CLS] text token       → 512-dim
-- Concatenate → 1024-dim → MLP (512 → 256 → 35)
-- Softmax over 35 answer classes
+```
+Image (224×224)            Question (text)
+      │                          │
+  ViT Encoder               Text Encoder
+  (patch embeddings)        (BERT-style)
+      │                          │
+      └──────── Cross-Attention ─┘
+                     │
+               Answer Decoder
+                     │
+              Generated Answer
+```
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Visual Question Answering Assistant/
-├── config.py               # All hyperparameters and paths
-├── train.py                # Training script
-├── infer.py                # Single-image inference
-├── evaluate.py             # Full test-set evaluation + metrics
-├── app.py                  # Streamlit web application
-├── requirements.txt
-├── README.md
 │
-├── models/
-│   ├── image_encoder.py    # ResNet-50 visual feature extractor
-│   ├── text_encoder.py     # BERT question encoder
-│   ├── fusion.py           # Cross-attention fusion module
-│   └── vqa_model.py        # Complete VQA model + checkpoint I/O
+├── api.py                   # FastAPI backend (local dev / Docker)
+├── requirements_api.txt     # Backend dependencies
+├── Dockerfile.local         # Docker config for local runs
+├── render.yaml              # Render deployment config
+│
+├── frontend/
+│   ├── api/
+│   │   └── predict.ts       # Vercel serverless function → BLIP inference
+│   ├── src/
+│   │   ├── App.tsx           # Root component
+│   │   ├── api.ts            # API client
+│   │   └── components/
+│   │       ├── Header.tsx
+│   │       ├── ImageUpload.tsx   # Drag-and-drop upload
+│   │       ├── QuestionInput.tsx # Example chips + input
+│   │       ├── AnswerCard.tsx    # Q&A history display
+│   │       └── ErrorBanner.tsx
+│   ├── vercel.json
+│   └── package.json
+│
+├── models/                  # Custom ResNet+BERT model (educational)
+│   ├── image_encoder.py
+│   ├── text_encoder.py
+│   ├── fusion.py
+│   └── vqa_model.py
 │
 ├── utils/
-│   ├── dataset.py          # PyTorch Dataset & DataLoader builders
-│   ├── preprocessing.py    # Image transforms + BERT tokenisation
-│   ├── metrics.py          # Accuracy, confusion matrix, VQA score
-│   └── visualization.py    # Attention heatmaps + Grad-CAM
+│   ├── dataset.py
+│   ├── preprocessing.py
+│   ├── metrics.py
+│   └── visualization.py
 │
-├── data/
-│   ├── generate_synthetic.py   # Synthetic coloured-shape dataset
-│   └── sample_data/            # Saved images (after generate)
-│
-├── checkpoints/            # Saved model weights (.pth)
-├── frontend/               # Extra CSS / static assets
-└── notebooks/              # Jupyter exploration notebooks
+└── data/
+    └── generate_synthetic.py
 ```
 
 ---
 
-## ⚙️ Setup
+## Local Setup
 
 ### Prerequisites
-- Python ≥ 3.10
-- pip
-- (Optional) CUDA-enabled GPU
+- Python 3.11+
+- Node.js 18+
+- HuggingFace token (free — [hf.co/settings/tokens](https://huggingface.co/settings/tokens))
 
-### Installation
+### Backend
 
 ```bash
-# 1. Clone / download the project
-cd "Visual Question Answering Assistant"
-
-# 2. Create a virtual environment (recommended)
+# 1. Create virtual environment
 python -m venv venv
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
 
-# 3. Install dependencies
-pip install -r requirements.txt
+# 2. Install dependencies
+pip install -r requirements_api.txt
+pip install torch torchvision transformers --extra-index-url https://download.pytorch.org/whl/cpu
+
+# 3. Configure environment
+echo USE_LOCAL_MODEL=true > .env
+echo HF_TOKEN=hf_your_token >> .env
+
+# 4. Start backend (port 7860)
+uvicorn api:app --host 0.0.0.0 --port 7860 --reload
 ```
 
-> **GPU users**: visit [pytorch.org](https://pytorch.org) to install the
-> CUDA-enabled PyTorch wheel first, then re-run `pip install -r requirements.txt`.
-
----
-
-## 🚀 Quick Start (No Training Required)
-
-The Streamlit app ships with a **Quick Demo** mode powered by
-`dandelin/vilt-b32-finetuned-vqa` (downloaded automatically from HuggingFace):
+### Frontend
 
 ```bash
-streamlit run app.py
+cd frontend
+npm install
+npm run dev          # starts at http://localhost:5173
 ```
 
-1. Open `http://localhost:8501` in your browser.
-2. Select **🚀 Quick Demo** in the sidebar.
-3. Upload any image or tick **Generate a synthetic example**.
-4. Type a question and click **Predict Answer**.
+Open **http://localhost:5173** — the app connects to your local backend automatically.
+
+> On first request, BLIP (~1 GB) downloads from HuggingFace and caches locally. Takes ~30 s once, then loads from disk.
 
 ---
 
-## 🏋️ Training the Custom Model
+## Model Details
 
+**BLIP (Bootstrapped Language-Image Pre-training)**
+
+| Property | Value |
+|---|---|
+| Model | `Salesforce/blip-vqa-base` |
+| Training data | VQAv2 (1.1M QA pairs, COCO images) |
+| Architecture | ViT image encoder + BERT-style text encoder + cross-attention |
+| Answer type | Open-ended (generative, not classification) |
+| Parameters | ~247M |
+
+Works best on: everyday scenes, animals, food, people, colours, counting, yes/no questions.
+
+---
+
+## Custom Model (Educational)
+
+The `models/` directory contains a from-scratch **ResNet-50 + BERT + Cross-Attention** VQA model built for learning:
+
+```
+Image → ResNet-50 → 49 visual tokens (512-dim)
+Text  → BERT      → contextual token embeddings (512-dim)
+                      ↓
+              Bidirectional Cross-Attention (×2 layers)
+                      ↓
+              MLP Classifier → 35 answer classes
+```
+
+Train it on the synthetic dataset:
 ```bash
-# Generate the synthetic dataset and train
-python train.py
-
-# With custom settings
-python train.py --epochs 20 --batch 32
-```
-
-Training progress is printed to the console and saved to
-`checkpoints/training_curves.png`.
-
-Default settings (configurable in `config.py`):
-| Setting | Value |
-|---------|-------|
-| Train samples | 5,000 |
-| Val samples | 1,000 |
-| Batch size | 16 |
-| Epochs | 15 |
-| Backbone LR | 1e-5 |
-| Fusion LR | 1e-4 |
-| Scheduler | OneCycleLR (cosine) |
-
----
-
-## 🔍 Inference
-
-```bash
-# Run on a specific image
-python infer.py --image path/to/image.png --question "What color is the circle?"
-
-# Run demo on 5 auto-generated examples
-python infer.py --demo --n 5
+python train.py --epochs 15 --batch 16
 ```
 
 ---
 
-## 📊 Evaluation
-
-```bash
-# Evaluate on the test set
-python evaluate.py
-
-# With zero-shot evaluation and per-class metrics
-python evaluate.py --zero-shot --verbose
-```
-
-Outputs:
-- Console table of sample predictions
-- `checkpoints/confusion_matrix.png`
-- `checkpoints/predictions.csv`
-- `checkpoints/zero_shot_results.csv` (if `--zero-shot`)
-
----
-
-## 🌐 Streamlit App Features
-
-| Feature | Description |
-|---------|-------------|
-| Image upload | PNG / JPG / BMP / WebP |
-| Synthetic generator | Creates a test image + question on the fly |
-| Quick Demo mode | ViLT (no training needed) |
-| Custom model mode | Your trained ResNet+BERT model |
-| Top-5 answers | Confidence bars for each candidate |
-| Attention heatmap | Shows which image regions were attended to |
-| Grad-CAM | Gradient-based discriminative localisation |
-| Architecture tab | Interactive explanation of the model |
-
----
-
-## 🗃️ Dataset
-
-The project ships with a **synthetic dataset generator** (`data/generate_synthetic.py`)
-that creates coloured geometric shapes paired with questions:
-
-| Type | Example Q | Example A |
-|------|-----------|-----------|
-| Colour | "What color is the circle?" | "blue" |
-| Shape | "What shape is the red object?" | "square" |
-| Count | "How many shapes are there?" | "3" |
-| Yes/No | "Is there a green triangle?" | "yes" |
-
-Answer vocabulary (35 classes): `yes`, `no`, 10 colours, 4 shapes,
-counts 0–5, 4 circuit components, size/direction words.
-
-To use a real dataset (CLEVR, VQA-v2), save a JSON manifest in the format
-`[{"image_path": "...", "question": "...", "answer": "..."}, ...]`
-and point `VQADataset` at it in `utils/dataset.py`.
-
----
-
-## 🎤 Interview Explanation
-
-> *"How would you explain this project in 2 minutes?"*
-
-**Problem**: Given an image and a question, predict the answer.
-
-**Approach**:
-1. Extract **visual features** using ResNet-50 (pretrained, mostly frozen).
-   Instead of a single global vector, I keep the 7×7 spatial grid — 49 tokens
-   that tell us *where* things are, not just *what* is there.
-
-2. Extract **text features** using BERT (pretrained, mostly frozen).
-   BERT gives contextual embeddings — "bank" means something different next to
-   "river" vs. "money".
-
-3. **Fuse** both modalities with bidirectional cross-attention:
-   image tokens attend to text tokens (which words describe this patch?),
-   text tokens attend to image tokens (which region does this word refer to?).
-
-4. **Classify** by concatenating the mean-pooled image representation and the
-   [CLS] text summary, then passing through a small MLP.
-
-**Key design choices**:
-- Separate learning rates: pretrained layers get 1e-5, new layers get 1e-4.
-  Prevents catastrophic forgetting while still adapting to the task.
-- Label smoothing (ε=0.1): prevents the model from becoming overconfident.
-- OneCycleLR with cosine annealing: stable training with warm-up.
-
----
-
-## 📄 Licence
+## License
 
 MIT — free to use for educational and personal projects.
 
 ---
 
-*Built with PyTorch · HuggingFace Transformers · Streamlit*
+<div align="center">
+Built with PyTorch · HuggingFace Transformers · FastAPI · React · Vite
+</div>
