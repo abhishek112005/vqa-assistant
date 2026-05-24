@@ -1,7 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-
-const HF_MODEL = "Salesforce/blip-vqa-base";
-const HF_API_URL = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
+import { HfInference } from "@huggingface/inference";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -25,38 +23,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(503).json({ detail: "HF_TOKEN not configured on server." });
   }
 
-  let hfRes: Response;
   try {
-    hfRes = await fetch(HF_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ inputs: { image: image_b64, question } }),
+    // convert base64 → Blob
+    const imageBuffer = Buffer.from(image_b64, "base64");
+    const imageBlob = new Blob([imageBuffer], { type: "image/jpeg" });
+
+    const hf = new HfInference(token);
+    const result = await hf.visualQuestionAnswering({
+      model: "Salesforce/blip-vqa-base",
+      inputs: { image: imageBlob, question: question.trim() },
     });
+
+    return res.status(200).json({ answer: result.answer, question });
   } catch (err: unknown) {
-    return res.status(502).json({ detail: `HuggingFace unreachable: ${err}` });
+    const message = err instanceof Error ? err.message : String(err);
+    return res.status(502).json({ detail: message });
   }
-
-  if (hfRes.status === 503) {
-    return res.status(503).json({ detail: "Model is loading on HuggingFace, retry in ~20 s." });
-  }
-
-  const text = await hfRes.text();
-  if (!hfRes.ok) {
-    return res.status(hfRes.status).json({ detail: text });
-  }
-
-  let answer = "";
-  try {
-    const json = JSON.parse(text);
-    if (Array.isArray(json) && json.length > 0) answer = json[0].answer ?? "";
-    else if (typeof json === "object") answer = json.answer ?? "";
-    else answer = String(json);
-  } catch {
-    answer = text;
-  }
-
-  return res.status(200).json({ answer, question });
 }
