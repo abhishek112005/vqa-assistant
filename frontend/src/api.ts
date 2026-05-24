@@ -1,4 +1,5 @@
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:7860";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const API_BASE: string = (import.meta as any).env?.VITE_API_URL ?? "http://localhost:7860";
 
 export interface PredictResult {
   answer: string;
