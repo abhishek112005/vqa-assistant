@@ -31,5 +31,16 @@ test-imgs/
 .DS_Store
 Thumbs.db
 
+# Secrets — never commit
+.env
+
 # Claude internal
 .claude/
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+frontend\.env
